@@ -1,0 +1,131 @@
+﻿<!-- Views/User/Create.cshtml -->
+@model BPKBModel
+
+<h2 class="text-center">Create BPKB</h2>
+
+<div class="container">
+    <form asp-action="Create" method="post" class="bpkb-form">
+        <div class="form-group">
+            <label asp-for="AgreementNumber" class="form-label">Agreement Number</label>
+            <input asp-for="AgreementNumber" class="form-control" placeholder="Input Agreement Number" />
+        </div>
+        <div class="form-group">
+            <label asp-for="BranchID" class="form-label">Branch Id</label>
+            <input asp-for="BranchID" class="form-control" placeholder="Input Branch Id" />
+        </div>
+        <div class="form-group">
+            <label asp-for="BPKBNo" class="form-label">No. BPKB</label>
+            <input asp-for="BPKBNo" class="form-control" placeholder="Input No. BPKB" />
+        </div>
+        <div class="form-group">
+            <label asp-for="BPKBDateIn" class="form-label">Tanggal BPKB In</label>
+            <input asp-for="BPKBDateIn" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="BPKBDate" class="form-label">Tanggal BPKB</label>
+            <input asp-for="BPKBDate" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="FakturNo" class="form-label">No. Faktur</label>
+            <input asp-for="FakturNo" class="form-control" placeholder="Input No. Faktur" />
+        </div>
+        <div class="form-group">
+            <label asp-for="FakturDate" class="form-label">Tanggal Faktur</label>
+            <input asp-for="FakturDate" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="PoliceNo" class="form-label">Nomor Polisi</label>
+            <input asp-for="PoliceNo" class="form-control" placeholder="Input Nomor Polisi" />
+        </div>
+        <div class="form-group">
+            <label asp-for="LocationID" class="form-label">Lokasi Penyimpanan</label>
+            <select asp-for="LocationID" asp-items="ViewBag.Locations" class="form-control">
+                <option value="" disabled selected>Select Lokasi Penyimpanan</option>
+            </select>
+        </div>
+        <input type="hidden" asp-for="CreatedBy" />
+        <div class="button-group">
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="button" onclick="clearCookiesAndRedirect()" class="btn btn-primary">Cancel</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function() {
+            var successMessage = '@Html.Raw(TempData["SuccessMessage"] ?? "")';
+            var errorMessage = '@Html.Raw(TempData["ErrorMessage"] ?? "")';
+            if (successMessage) {
+                alert(successMessage);
+            }
+            if (errorMessage) {
+                alert(errorMessage);
+            }
+        });
+
+        function clearCookiesAndRedirect() {
+            const cookies = document.cookie.split("; ");
+            for (let cookie of cookies) {
+                const eqPos = cookie.indexOf("=");
+                const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+            }
+            location.href = "/";
+        }
+    </script>
+}
+
+<style>
+    body {
+        background-color: #f8f9fa;
+        font-family: Arial, sans-serif;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .bpkb-form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-label {
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .form-control {
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .btn {
+        padding: 10px;
+        font-size: 16px;
+        width: 48%;
+        background-color: orange;
+        border: orange;
+        color: white;
+    }
+</style>
