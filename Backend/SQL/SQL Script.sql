@@ -52,5 +52,6 @@ UNION ALL SELECT 'Punch Card';
 
 
 INSERT INTO ms_user(user_name, password, is_active)
-SELECT 'Andi', 'ANDI123', 1
-UNION ALL SELECT 'Fajar', 'FAJAR123', 1;
+SELECT 'jhonUmiro', 'admin1*', 1
+UNION ALL SELECT 'trisNatan', 'admin2@', 1
+UNION ALL SELECT 'hugoRess', 'admin3#', 0;
