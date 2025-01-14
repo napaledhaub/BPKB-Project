@@ -1,0 +1,220 @@
+﻿<!-- Views/User/BPKB.cshtml -->
+@model BPKBModel
+
+<h2 class="text-center">Create BPKB</h2>
+
+<div class="container">
+    <div class="form-group">
+        <label for="searchAgreementNumber" class="form-label">Search by Agreement Number</label>
+        <input type="text" id="searchAgreementNumber" class="form-control" placeholder="Input Agreement Number" />
+        <button type="button" id="searchButton" class="btn btn-secondary mt-2">Search</button>
+        <button type="button" id="deleteButton" class="btn btn-secondary mt-2">Delete</button>
+    </div>
+    <form asp-action="Create" method="post" class="bpkb-form">
+        <div class="form-group">
+            <label asp-for="AgreementNumber" class="form-label">Agreement Number</label>
+            <input asp-for="AgreementNumber" class="form-control" placeholder="Input Agreement Number" />
+        </div>
+        <div class="form-group">
+            <label asp-for="BranchID" class="form-label">Branch Id</label>
+            <input asp-for="BranchID" class="form-control" placeholder="Input Branch Id" />
+        </div>
+        <div class="form-group">
+            <label asp-for="BPKBNo" class="form-label">No. BPKB</label>
+            <input asp-for="BPKBNo" class="form-control" placeholder="Input No. BPKB" />
+        </div>
+        <div class="form-group">
+            <label asp-for="BPKBDateIn" class="form-label">Tanggal BPKB In</label>
+            <input asp-for="BPKBDateIn" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="BPKBDate" class="form-label">Tanggal BPKB</label>
+            <input asp-for="BPKBDate" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="FakturNo" class="form-label">No. Faktur</label>
+            <input asp-for="FakturNo" class="form-control" placeholder="Input No. Faktur" />
+        </div>
+        <div class="form-group">
+            <label asp-for="FakturDate" class="form-label">Tanggal Faktur</label>
+            <input asp-for="FakturDate" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="PoliceNo" class="form-label">Nomor Polisi</label>
+            <input asp-for="PoliceNo" class="form-control" placeholder="Input Nomor Polisi" />
+        </div>
+        <div class="form-group">
+            <label asp-for="LocationID" class="form-label">Lokasi Penyimpanan</label>
+            <select asp-for="LocationID" asp-items="ViewBag.Locations" class="form-control">
+                <option value="" disabled selected>Select Lokasi Penyimpanan</option>
+            </select>
+        </div>
+        <input type="hidden" asp-for="CreatedBy" />
+        <input type="hidden" asp-for="LastUpdateBy" />
+        <input type="hidden" asp-for="LastUpdateOn" />
+        <input type="hidden" asp-for="CreatedOn" />
+        <div class="button-group">
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="button" onclick="clearCookiesAndRedirect()" class="btn btn-primary">Quit</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function () {
+            var successMessage = '@Html.Raw(TempData["SuccessMessage"] ?? "")';
+            var errorMessage = '@Html.Raw(TempData["ErrorMessage"] ?? "")';
+            if (successMessage) {
+                alert(successMessage);
+            }
+            if (errorMessage) {
+                alert(errorMessage);
+            }
+
+            $('#searchButton').click(function () {
+                var agreementNumber = $('#searchAgreementNumber').val();
+                if (agreementNumber) {
+                    $.ajax({
+                        url: '/BPKB/Search',
+                        type: 'GET',
+                        data: { agreementNumber: agreementNumber },
+                        success: function (data) {
+                            if (data) {
+                                $('#AgreementNumber').val(data.agreementNumber);
+                                $('#BranchID').val(data.branchID);
+                                $('#BPKBNo').val(data.bpkbNo);
+                                $('#BPKBDateIn').val(formatDate(data.bpkbDateIn));
+                                $('#BPKBDate').val(formatDate(data.bpkbDate));
+                                $('#FakturNo').val(data.fakturNo);
+                                $('#FakturDate').val(formatDate(data.fakturDate));
+                                $('#PoliceNo').val(data.policeNo);
+                                $('#LocationID').val(data.locationID);
+                                $('#CreatedBy').val(data.createdBy);
+                                $('#LastUpdateBy').val(data.lastUpdateBy);
+                                $('#CreatedOn').val(data.createdOn);
+                                $('#LastUpdateOn').val(data.lastUpdateOn);
+                            } else {
+                                alert('No BPKB found with that Agreement Number.');
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            alert('An error occurred while searching for the BPKB.');
+                        }
+                    });
+                } else {
+                    alert('Please enter an Agreement Number to search.');
+                }
+            });
+
+            $('#deleteButton').click(function () {
+                var agreementNumber = $('#searchAgreementNumber').val();
+                if (!agreementNumber) {
+                    alert('Please enter an Agreement Number to delete.');
+                    return;
+                }
+
+                if (confirm('Are you sure you want to delete this agreement?')) {
+                    $.ajax({
+                        url: '/BPKB/Delete',
+                        type: 'DELETE',
+                        data: { agreementNumber: agreementNumber },
+                        success: function () {
+                            alert('Agreement deleted successfully.');
+                            $('#searchAgreementNumber').val('');
+                            $('#AgreementNumber').val('');
+                            $('#BranchID').val('');
+                            $('#BPKBNo').val('');
+                            $('#BPKBDateIn').val('');
+                            $('#BPKBDate').val('');
+                            $('#FakturNo').val('');
+                            $('#FakturDate').val('');
+                            $('#PoliceNo').val('');
+                            $('#LocationID').val('');
+                            $('#CreatedBy').val('');
+                            $('#LastUpdateBy').val('');
+                            $('#CreatedOn').val('');
+                            $('#LastUpdateOn').val('');
+                        },
+                        error: function (xhr, status, error) {
+                            alert('An error occurred while deleting the agreement.');
+                        }
+                    });
+                }
+            });
+        });
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function clearCookiesAndRedirect() {
+            const cookies = document.cookie.split("; ");
+            for (let cookie of cookies) {
+                const eqPos = cookie.indexOf("=");
+                const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+            }
+            location.href = "/";
+        }
+    </script>
+}
+
+<style>
+    body {
+        background-color: #f8f9fa;
+        font-family: Arial, sans-serif;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .bpkb-form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-label {
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .form-control {
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .btn {
+        padding: 10px;
+        font-size: 16px;
+        width: 48%;
+        background-color: orange;
+        border: orange;
+        color: white;
+    }
+</style>

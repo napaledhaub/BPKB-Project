@@ -18,5 +18,22 @@ namespace BPKBAPI.Service
             bpkb.CreatedOn = DateTime.UtcNow;
             await _repository.AddBPKBAsync(bpkb);
         }
+
+        public async Task<BPKB> GetBPKBByAgreementNumberAsync(string agreementNumber)
+        {
+            return await _repository.GetByAgreementNumberAsync(agreementNumber);
+        }
+
+        public async Task UpdateBPKBAsync(BPKB bpkb)
+        {
+            bpkb.LastUpdateOn = DateTime.UtcNow;
+            await _repository.UpdateBPKBAsync(bpkb);
+        }
+
+        public async Task DeleteBPKBAsync(string agreementNumber)
+        {
+            await _repository.DeleteBPKBAsync(agreementNumber);
+        }
+
     }
 }

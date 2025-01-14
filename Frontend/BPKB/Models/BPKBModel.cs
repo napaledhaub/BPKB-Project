@@ -14,5 +14,8 @@ namespace BPKB.Models
         public string? PoliceNo { get; set; }
         public DateTime? BPKBDateIn { get; set; }
         public string? CreatedBy { get; set; }
+        public DateTime? CreatedOn { get; set; }
+        public string? LastUpdateBy { get; set; }
+        public DateTime? LastUpdateOn { get; set; }
     }
 }

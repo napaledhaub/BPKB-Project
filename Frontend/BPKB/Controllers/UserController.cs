@@ -50,7 +50,7 @@ namespace BPKB.Controllers
                         };
                         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
-                        return RedirectToAction("Create", "BPKB", new { username = user.Username });
+                        return RedirectToAction("BPKB", "BPKB", new { username = user.Username });
                     }
                 }
                 ViewData["ErrorMessage"] = "Login Failed";
