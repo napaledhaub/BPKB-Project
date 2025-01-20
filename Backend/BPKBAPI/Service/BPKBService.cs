@@ -1,4 +1,5 @@
 ﻿using BPKBAPI.Models;
+using BPKBAPI.Repository;
 using BPKBAPI.Repository.Interface;
 using BPKBAPI.Service.Interface;
 
@@ -19,9 +20,9 @@ namespace BPKBAPI.Service
             await _repository.AddBPKBAsync(bpkb);
         }
 
-        public async Task<BPKB> GetBPKBByAgreementNumberAsync(string agreementNumber)
+        public async Task<(List<BPKBWithLocation> BPKBs, int TotalCount)> GetBPKBByAgreementNumberAsync(string agreementNumber, int pageNumber, int pageSize)
         {
-            return await _repository.GetByAgreementNumberAsync(agreementNumber);
+            return await _repository.GetByAgreementNumberAsync(agreementNumber, pageNumber, pageSize);
         }
 
         public async Task UpdateBPKBAsync(BPKB bpkb)
@@ -35,5 +36,9 @@ namespace BPKBAPI.Service
             await _repository.DeleteBPKBAsync(agreementNumber);
         }
 
+        public async Task<(List<BPKBWithLocation> BPKBs, int TotalCount)> GetBPKBsAsync(int pageNumber, int pageSize)
+        {
+            return await _repository.GetBPKBsAsync(pageNumber, pageSize);
+        }
     }
 }

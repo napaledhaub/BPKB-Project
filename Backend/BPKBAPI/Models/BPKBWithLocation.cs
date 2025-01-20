@@ -1,8 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace BPKB.Models
+﻿namespace BPKBAPI.Models
 {
-    public class BPKBModel
+    public class BPKBWithLocation
     {
         public string? AgreementNumber { get; set; }
         public string? BPKBNo { get; set; }

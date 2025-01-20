@@ -1,11 +1,15 @@
 ﻿using System.Net.Http;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using BPKB.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
+using System.Reflection;
 
 namespace BPKB.Controllers
 {
@@ -26,14 +30,51 @@ namespace BPKB.Controllers
             return View();
         }
 
-        public async Task<IActionResult> BPKB()
+        public async Task<IActionResult> BPKB(string agreementNumber = "")
         {
             var client = _httpClientFactory.CreateClient();
             var response = await client.GetStringAsync(_configuration["ApiSettings:GetLocationUrl"]);
             var locations = JsonConvert.DeserializeObject<List<LocationModel>>(response);
 
             ViewBag.Locations = new SelectList(locations, "LocationID", "LocationName");
-            return View();
+            var model = new BPKBModel();
+            if (!string.IsNullOrEmpty(agreementNumber))
+            {
+                var bpkb = await Search(agreementNumber);
+                ViewBag.AgreementNumber = bpkb.AgreementNumber;
+                ViewBag.BranchID = bpkb.BranchID;
+                ViewBag.BPKBNo = bpkb.BPKBNo;
+                ViewBag.BPKBDateIn = bpkb.BPKBDateIn?.ToString("yyyy-MM-dd");
+                ViewBag.BPKBDate = bpkb.BPKBDate?.ToString("yyyy-MM-dd");
+                ViewBag.FakturNo = bpkb.FakturNo;
+                ViewBag.FakturDate = bpkb.FakturDate?.ToString("yyyy-MM-dd");
+                ViewBag.PoliceNo = bpkb.PoliceNo;
+                ViewBag.CreatedBy = bpkb.CreatedBy;
+                ViewBag.LastUpdateBy = bpkb.LastUpdateBy;
+                ViewBag.LastUpdateOn = bpkb.LastUpdateOn?.ToString("yyyy-MM-dd");
+                ViewBag.CreatedOn = bpkb.CreatedOn?.ToString("yyyy-MM-dd");
+                model.LocationID = bpkb.LocationID;
+            }
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<BPKBModel> Search(string agreementNumber)
+        {
+            var client = _httpClientFactory.CreateClient();
+            var apiUrl = $"{_configuration["ApiSettings:BPKBUrl"]}{agreementNumber}?pageNumber={1}&pageSize={10}";
+            var response = await client.GetAsync(apiUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var bpkbs = await response.Content.ReadFromJsonAsync<BPKBDashboardModel>();
+                var bpkb = bpkbs.BPKBs.ToList().FirstOrDefault();
+                return bpkb;
+            }
+            else
+            {
+                return new BPKBModel();
+            }
         }
 
         [HttpPost]
@@ -46,91 +87,70 @@ namespace BPKB.Controllers
             else
             {
                 var client = _httpClientFactory.CreateClient();
-                var checkResponse = await client.GetAsync($"{_configuration["ApiSettings:BPKBUrl"]}{bpkb.AgreementNumber}");
+                var apiUrl = $"{_configuration["ApiSettings:BPKBUrl"]}{bpkb.AgreementNumber}?pageNumber={1}&pageSize={10}";
+                var checkResponse = await client.GetAsync(apiUrl);
 
                 if (checkResponse.IsSuccessStatusCode)
                 {
-                    bpkb.LastUpdateBy = User.Identity.Name;
-                    var json = System.Text.Json.JsonSerializer.Serialize(bpkb);
-                    var content = new StringContent(json, Encoding.UTF8, "application/json");
-                    var putResponse = await client.PutAsync(_configuration["ApiSettings:BPKBUrl"], content);
+                    var result = await checkResponse.Content.ReadFromJsonAsync<BPKBDashboardModel>();
 
-                    if (putResponse.IsSuccessStatusCode)
+                    if (result.TotalCount == 0)
                     {
-                        TempData["SuccessMessage"] = "BPKB updated successfully!";
+                        bpkb.CreatedBy = User.Identity.Name;
+                        var json = System.Text.Json.JsonSerializer.Serialize(bpkb);
+                        var content = new StringContent(json, Encoding.UTF8, "application/json");
+                        var postResponse = await client.PostAsync(_configuration["ApiSettings:BPKBUrl"], content);
+
+                        if (postResponse.IsSuccessStatusCode)
+                        {
+                            TempData["SuccessMessage"] = "BPKB created successfully!";
+                        }
+                        else
+                        {
+                            TempData["ErrorMessage"] = "An error occurred while creating the BPKB.";
+                        }
                     }
                     else
                     {
-                        TempData["ErrorMessage"] = "An error occurred while updating the BPKB.";
+                        bpkb.LastUpdateBy = User.Identity.Name;
+                        var json = System.Text.Json.JsonSerializer.Serialize(bpkb);
+                        var content = new StringContent(json, Encoding.UTF8, "application/json");
+                        var postResponse = await client.PutAsync(_configuration["ApiSettings:BPKBUrl"], content);
+
+                        if (postResponse.IsSuccessStatusCode)
+                        {
+                            TempData["SuccessMessage"] = "BPKB updated successfully!";
+                        }
+                        else
+                        {
+                            TempData["ErrorMessage"] = "An error occurred while creating the BPKB.";
+                        }
                     }
                 }
                 else
                 {
-                    bpkb.CreatedBy = User.Identity.Name;
-                    var json = System.Text.Json.JsonSerializer.Serialize(bpkb);
-                    var content = new StringContent(json, Encoding.UTF8, "application/json");
-                    var postResponse = await client.PostAsync(_configuration["ApiSettings:BPKBUrl"], content);
-
-                    if (postResponse.IsSuccessStatusCode)
-                    {
-                        TempData["SuccessMessage"] = "BPKB created successfully!";
-                    }
-                    else
-                    {
-                        TempData["ErrorMessage"] = "An error occurred while creating the BPKB.";
-                    }
+                    TempData["ErrorMessage"] = "An error occurred while creating the BPKB.";
                 }
             }
 
-            return RedirectToAction("BPKB", "BPKB", new { username = bpkb.CreatedBy });
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, User.Identity.Name)
+            };
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+            return RedirectToAction("Index", "BPKBDashboard", new { pageNumber = 1, pageSize = 10, username = User.Identity.Name });
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Search(string agreementNumber)
+        public async Task<IActionResult> Cancel()
         {
-            if (string.IsNullOrEmpty(agreementNumber))
+            var claims = new List<Claim>
             {
-                return BadRequest("Agreement number is required.");
-            }
-
-            var client = _httpClientFactory.CreateClient();
-            var response = await client.GetAsync($"{_configuration["ApiSettings:BPKBUrl"]}{agreementNumber}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var jsonResponse = await response.Content.ReadAsStringAsync();
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                };
-                var bpkb = System.Text.Json.JsonSerializer.Deserialize<BPKBModel>(jsonResponse, options);
-                return Json(bpkb);
-            }
-            else
-            {
-                return NotFound();
-            }
-        }
-
-        [HttpDelete]
-        public async Task<IActionResult> Delete(string agreementNumber)
-        {
-            if (string.IsNullOrEmpty(agreementNumber))
-            {
-                return BadRequest("Agreement number is required.");
-            }
-
-            var client = _httpClientFactory.CreateClient();
-            var response = await client.DeleteAsync($"{_configuration["ApiSettings:BPKBUrl"]}{agreementNumber}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                return NoContent();
-            }
-            else
-            {
-                return NotFound();
-            }
+                new Claim(ClaimTypes.Name, User.Identity.Name)
+            };
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+            return RedirectToAction("Index", "BPKBDashboard", new { pageNumber = 1, pageSize = 10, username = User.Identity.Name });
         }
     }
 }

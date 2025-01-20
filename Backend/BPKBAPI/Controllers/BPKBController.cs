@@ -29,16 +29,18 @@ namespace BPKBAPI.Controllers
         }
 
         [HttpGet("{agreementNumber}")]
-        public async Task<ActionResult<BPKB>> GetBPKB(string agreementNumber)
+        public async Task<IActionResult> GetBPKB(string agreementNumber, int pageNumber = 1, int pageSize = 10)
         {
-            var bpkb = await _service.GetBPKBByAgreementNumberAsync(agreementNumber);
-
-            if (bpkb == null)
+            var (bpkbs, totalCount) = await _service.GetBPKBByAgreementNumberAsync(agreementNumber, pageNumber, pageSize);
+            var result = new
             {
-                return NotFound();
-            }
+                TotalCount = totalCount,
+                PageSize = pageSize,
+                CurrentPage = pageNumber,
+                BPKBs = bpkbs
+            };
 
-            return Ok(bpkb);
+            return Ok(result);
         }
 
         [HttpPut]
@@ -55,5 +57,19 @@ namespace BPKBAPI.Controllers
             return NoContent();
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetBPKBs(int pageNumber = 1, int pageSize = 10)
+        {
+            var (bpkbs, totalCount) = await _service.GetBPKBsAsync(pageNumber, pageSize);
+            var result = new
+            {
+                TotalCount = totalCount,
+                PageSize = pageSize,
+                CurrentPage = pageNumber,
+                BPKBs = bpkbs
+            };
+
+            return Ok(result);
+        }
     }
 }
