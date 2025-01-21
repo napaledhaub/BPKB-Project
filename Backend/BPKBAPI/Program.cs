@@ -11,12 +11,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-builder.Configuration
-    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-    .AddJsonFile($"Config/appsettings.{env}.json", optional: true, reloadOnChange: true);
+var conString = builder.Configuration.GetConnectionString("DatabaseConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DatabaseConnection")));
+    options.UseSqlServer(conString));
 
 builder.Services.AddScoped<IStorageLocationRepository, StorageLocationRepository>();
 builder.Services.AddScoped<IStorageLocationService, StorageLocationService>();

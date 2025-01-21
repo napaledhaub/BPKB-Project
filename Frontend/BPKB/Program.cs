@@ -3,9 +3,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
-builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-builder.Configuration.AddJsonFile($"Config/appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
-
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();

@@ -37,6 +37,7 @@ namespace BPKB.Controllers
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 var client = _httpClientFactory.CreateClient();
+                var url = _configuration["ApiSettings:LoginUrl"];
 
                 var response = await client.PostAsync(_configuration["ApiSettings:LoginUrl"], content);
                 if (response.IsSuccessStatusCode)
