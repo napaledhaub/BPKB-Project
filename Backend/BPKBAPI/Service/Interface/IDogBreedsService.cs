@@ -4,6 +4,7 @@ namespace BPKBAPI.Service.Interface
 {
     public interface IDogBreedsService
     {
-        Task<DogBreedsResponse> FetchBreedsAsync();
+        Task<DogBreedsResponse> FetchBreeds();
+        Task<DogImageResponse> GetDogImages(string breed, int numberOfImages);
     }
 }

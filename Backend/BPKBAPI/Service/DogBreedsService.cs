@@ -14,9 +14,21 @@ namespace BPKBAPI.Service
             _repository = repository;
         }
 
-        public async Task<DogBreedsResponse> FetchBreedsAsync()
+        public async Task<DogBreedsResponse> FetchBreeds()
         {
-            return await _repository.FetchBreedsAsync();
+            return await _repository.FetchBreeds();
+        }
+
+        public async Task<DogImageResponse> GetDogImages(string breed, int numberOfImages)
+        {
+            DogBreedsResponse dogBreedsResponse = await _repository.FetchBreeds();
+            Dictionary<string, List<string>> dogBreeds = dogBreedsResponse.Message;
+            if (!dogBreeds.ContainsKey(breed))
+            {
+                return new DogImageResponse { Status = "failed", Message = null};
+            }
+
+            return await _repository.GetDogImages(breed, numberOfImages);
         }
     }
 }
